@@ -304,6 +304,30 @@ document.getElementById("zoomInBtn")?.addEventListener("click", () => board.zoom
 document.getElementById("zoomOutBtn")?.addEventListener("click", () => board.zoomOut());
 document.getElementById("zoomResetBtn")?.addEventListener("click", () => board.resetView());
 
+// ─── Legend: click to isolate a bus ───
+const busLegend = document.getElementById("busLegend");
+let activeLegendBtn = null;
+busLegend?.querySelectorAll(".legend-btn[data-bus]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (activeLegendBtn === btn) {
+      // Toggle off
+      btn.classList.remove("active");
+      activeLegendBtn = null;
+      board.clearFilter();
+    } else {
+      activeLegendBtn?.classList.remove("active");
+      btn.classList.add("active");
+      activeLegendBtn = btn;
+      board.setFilter(btn.dataset.bus);
+    }
+  });
+});
+document.getElementById("filterResetBtn")?.addEventListener("click", () => {
+  activeLegendBtn?.classList.remove("active");
+  activeLegendBtn = null;
+  board.clearFilter();
+});
+
 // ─── Board-only fullscreen ───
 const boardPanel = document.querySelector(".board-panel");
 const boardFullBtn = document.getElementById("boardFullBtn");

@@ -288,11 +288,39 @@ function pointsToD(points) {
   return "M " + points.map(p => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" L ");
 }
 
+const BUS_LABELS = {
+  "pwr": "Güç (VCC)",
+  "gnd": "GND",
+  "i2c": "I2C",
+  "i2s-in": "I2S Giriş (mic → MCU)",
+  "i2s-out": "I2S Çıkış (MCU → amp)",
+  "gpio": "GPIO",
+  "load": "Load cell analog",
+  "spk": "Hoparlör"
+};
+
+function wireLabel(w) {
+  const bus = BUS_LABELS[w.bus] || w.bus;
+  const pretty = w.id
+    .replace(/^pwr-/, "")
+    .replace(/^gnd-/, "")
+    .replace(/^i2c-/, "")
+    .replace(/^i2s-(in|out)-/, "")
+    .replace(/^gpio-/, "")
+    .replace(/^load-/, "")
+    .replace(/^spk-/, "")
+    .replace(/-/g, " ")
+    .toUpperCase();
+  return `${bus}  ·  ${pretty}`;
+}
+
 function wireSVG(w) {
   const d = pointsToD(w.path);
   return `
-    <g class="wire" data-id="${w.id}" data-bus="${w.bus}">
-      <path d="${d}" stroke="${w.color}" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+    <g class="wire" data-id="${w.id}" data-bus="${w.bus}" data-color="${w.color}">
+      <title>${wireLabel(w)}</title>
+      <path class="wire-hit" d="${d}" stroke="transparent" stroke-width="14" fill="none" pointer-events="stroke"/>
+      <path class="wire-main" d="${d}" stroke="${w.color}" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
       <path class="wire-flow" d="${d}" stroke="${w.color}" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 12" opacity="0" filter="url(#glow)"/>
     </g>
   `;
@@ -802,11 +830,41 @@ export function initBoard(container) {
 
   // Collect flow paths per bus
   const flowsByBus = {};
-  svg.querySelectorAll(".wire").forEach(g => {
+  const allWires = [...svg.querySelectorAll(".wire")];
+  allWires.forEach(g => {
     const bus = g.dataset.bus;
     const flow = g.querySelector(".wire-flow");
     (flowsByBus[bus] ||= []).push(flow);
   });
+
+  // ─── Filter & hover highlighting ─────────────────────────────────────
+  let activeFilter = null; // bus string or null
+
+  function applyHighlight(hoveredBus) {
+    // Priority: locked filter > transient hover > none
+    const activeBus = activeFilter || hoveredBus;
+    allWires.forEach(w => {
+      const isMatch = !activeBus || w.dataset.bus === activeBus;
+      w.classList.toggle("wire-dim", !!activeBus && !isMatch);
+      w.classList.toggle("wire-hi", !!activeBus && isMatch);
+    });
+  }
+
+  // Hover per wire
+  allWires.forEach(w => {
+    const bus = w.dataset.bus;
+    w.addEventListener("mouseenter", () => {
+      if (!activeFilter) applyHighlight(bus);
+    });
+    w.addEventListener("mouseleave", () => {
+      if (!activeFilter) applyHighlight(null);
+    });
+  });
+
+  function setFilter(bus) {
+    activeFilter = bus || null;
+    applyHighlight(null);
+  }
 
   // Animate dash offset continuously for any active flow
   let dashOffset = 0;
@@ -926,6 +984,8 @@ export function initBoard(container) {
       const rect = svg.getBoundingClientRect();
       zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1 / 1.25);
     },
-    resetView
+    resetView,
+    setFilter,
+    clearFilter: () => setFilter(null)
   };
 }

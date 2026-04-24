@@ -194,17 +194,64 @@ html, body {
   color: var(--muted); border-top: 1px solid var(--panel-border);
   background: rgba(0,0,0,0.25);
 }
-.legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
-.legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono); }
-.swatch { width: 14px; height: 3px; border-radius: 2px; }
+.legend { display: flex; gap: 6px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.legend-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.legend-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(61,220,151,0.1);
+}
+.legend-btn.active {
+  color: #042010;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(61,220,151,0.5);
+  font-weight: 700;
+}
+.legend-btn.active .swatch { box-shadow: 0 0 8px currentColor; filter: brightness(1.3); }
+.legend-btn.reset {
+  color: var(--accent-2);
+  border-style: dashed;
+}
+.legend-btn.reset:hover {
+  background: rgba(255,207,74,0.1);
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.swatch { width: 14px; height: 4px; border-radius: 2px; flex-shrink: 0; }
 .sw-i2c { background: #3ddc97; box-shadow: 0 0 6px #3ddc97; }
 .sw-sda { background: #b48cff; box-shadow: 0 0 6px #b48cff; }
 .sw-i2s { background: #4ab3ff; box-shadow: 0 0 6px #4ab3ff; }
 .sw-ws { background: #ff9f43; box-shadow: 0 0 6px #ff9f43; }
 .sw-gpio { background: #ffcf4a; box-shadow: 0 0 6px #ffcf4a; }
-.sw-pwr { background: #e63946; box-shadow: 0 0 6px #e63946; }
+.sw-pwr { background: linear-gradient(90deg, #e63946 50%, #ff6b9d 50%); box-shadow: 0 0 6px #e63946; }
 .sw-vcc3 { background: #ff6b9d; box-shadow: 0 0 6px #ff6b9d; }
 .sw-gnd { background: #222; border: 1px solid #555; }
+.sw-load { background: #8b5a3c; box-shadow: 0 0 6px #8b5a3c; }
+.sw-spk { background: linear-gradient(90deg, #555 50%, #e63946 50%); box-shadow: 0 0 4px #888; }
+
+/* Wire highlight/dim states */
+.wire { transition: opacity 0.2s; }
+.wire .wire-main { transition: stroke-width 0.15s, filter 0.15s; }
+.wire .wire-hit { cursor: help; }
+.wire.wire-dim { opacity: 0.1; }
+.wire.wire-hi .wire-main {
+  stroke-width: 3.6;
+  filter: drop-shadow(0 0 4px currentColor);
+}
 
 /* Controls column */
 .controls {

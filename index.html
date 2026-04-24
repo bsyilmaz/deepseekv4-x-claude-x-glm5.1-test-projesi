@@ -43,15 +43,16 @@
       <button class="btn-board-full" id="boardFullBtn" title="Devreyi tam ekran göster">
         ⛶ Tam Ekran
       </button>
-      <div class="legend">
-        <span class="legend-item"><span class="swatch sw-pwr"></span>5V</span>
-        <span class="legend-item"><span class="swatch sw-vcc3"></span>3V3</span>
-        <span class="legend-item"><span class="swatch sw-gnd"></span>GND</span>
-        <span class="legend-item"><span class="swatch sw-i2c"></span>SCL</span>
-        <span class="legend-item"><span class="swatch sw-sda"></span>SDA</span>
-        <span class="legend-item"><span class="swatch sw-i2s"></span>I2S BCLK</span>
-        <span class="legend-item"><span class="swatch sw-ws"></span>I2S WS</span>
-        <span class="legend-item"><span class="swatch sw-gpio"></span>GPIO</span>
+      <div class="legend" id="busLegend">
+        <button class="legend-btn" data-bus="pwr" title="Tüm güç hatları (5V + 3V3)"><span class="swatch sw-pwr"></span>Güç</button>
+        <button class="legend-btn" data-bus="gnd" title="Toprak hatları"><span class="swatch sw-gnd"></span>GND</button>
+        <button class="legend-btn" data-bus="i2c" title="I2C (OLED + BME280)"><span class="swatch sw-i2c"></span>I2C</button>
+        <button class="legend-btn" data-bus="i2s-in" title="Mikrofon I2S girişi"><span class="swatch sw-i2s"></span>I2S mic</button>
+        <button class="legend-btn" data-bus="i2s-out" title="Amplifikatör I2S çıkışı"><span class="swatch sw-ws"></span>I2S amp</button>
+        <button class="legend-btn" data-bus="gpio" title="Button + HX711 GPIO"><span class="swatch sw-gpio"></span>GPIO</button>
+        <button class="legend-btn" data-bus="load" title="Load cell sinyalleri"><span class="swatch sw-load"></span>Load cell</button>
+        <button class="legend-btn" data-bus="spk" title="Hoparlör çıkışı"><span class="swatch sw-spk"></span>Hoparlör</button>
+        <button class="legend-btn reset" id="filterResetBtn" title="Filtreyi temizle">⟲ Tümü</button>
       </div>
     </div>
     <div class="board-container" id="boardContainer">
