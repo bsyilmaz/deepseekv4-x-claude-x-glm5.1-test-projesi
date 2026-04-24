@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Editörler
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Ortam değişkenleri / API anahtarları
+.env
+.env.local
+*.key
+secrets.json
+
+# Python (server.py çalışırken)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Geçici / cache
+*.tmp
+*.bak
+*.cache
+
+# Ödev briefi (public repoya girmesin)
+*.pdf

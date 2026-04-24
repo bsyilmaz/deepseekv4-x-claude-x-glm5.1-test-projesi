@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study Buddy — Sanal Devre Simülatörü</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="logo-dot"></div>
+    <div>
+      <h1>STUDY BUDDY</h1>
+      <span class="subtitle">Sanal Devre Simülatörü — XIAO ESP32-S3</span>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="team">ISU Embedded Systems · Spring 2026</span>
+    <span class="students">Enes ÖZBEK · Bayram Selim YILMAZ · Mehmet Emin AKKAYA</span>
+  </div>
+  <div class="header-actions">
+    <span class="status-chip" id="wifiChip">
+      <span class="dot-online"></span> Wi-Fi: Bağlı
+    </span>
+    <span class="status-chip" id="powerChip">
+      <span class="dot-online"></span> 5V USB-C
+    </span>
+    <button class="btn-icon" id="apiKeyBtn" title="NVIDIA API Anahtarı">
+      🔑 API Key
+    </button>
+    <button class="btn-icon" id="fullscreenBtn" title="Tam ekran (F11)">
+      ⛶ Tam Ekran
+    </button>
+  </div>
+</header>
+
+<main class="app-main">
+  <!-- SOL: Devre kartı -->
+  <section class="panel board-panel">
+    <div class="panel-header">
+      <span class="panel-title">DEVRE KARTI</span>
+      <button class="btn-board-full" id="boardFullBtn" title="Devreyi tam ekran göster">
+        ⛶ Tam Ekran
+      </button>
+      <div class="legend">
+        <span class="legend-item"><span class="swatch sw-pwr"></span>5V</span>
+        <span class="legend-item"><span class="swatch sw-vcc3"></span>3V3</span>
+        <span class="legend-item"><span class="swatch sw-gnd"></span>GND</span>
+        <span class="legend-item"><span class="swatch sw-i2c"></span>SCL</span>
+        <span class="legend-item"><span class="swatch sw-sda"></span>SDA</span>
+        <span class="legend-item"><span class="swatch sw-i2s"></span>I2S BCLK</span>
+        <span class="legend-item"><span class="swatch sw-ws"></span>I2S WS</span>
+        <span class="legend-item"><span class="swatch sw-gpio"></span>GPIO</span>
+      </div>
+    </div>
+    <div class="board-container" id="boardContainer">
+      <!-- board.js SVG'yi buraya enjekte eder -->
+      <div class="board-zoom-controls" aria-label="Yakınlaştırma kontrolleri">
+        <button class="zoom-btn" id="zoomInBtn" title="Yakınlaştır (mouse wheel)">+</button>
+        <button class="zoom-btn" id="zoomOutBtn" title="Uzaklaştır">−</button>
+        <button class="zoom-btn" id="zoomResetBtn" title="Görünümü sıfırla">⟲</button>
+      </div>
+      <div class="board-hint">🖱️ Sürükle · 🖲️ Wheel: zoom</div>
+    </div>
+    <div class="board-footer">
+      <span id="boardStatus">Sistem hazır · 0 olay</span>
+    </div>
+  </section>
+
+  <!-- SAĞ: Kontrol sütunu -->
+  <section class="controls">
+    <!-- Test rehberi -->
+    <div class="panel guide-panel" id="guidePanel">
+      <div class="panel-header">
+        <span class="panel-title">🧪 TEST EYLEMLERİ <span class="sub">Simülasyonu deneyin</span></span>
+        <button class="btn-mini" id="guideToggleBtn" title="Rehberi gizle/göster">Gizle</button>
+      </div>
+      <div class="guide-body" id="guideBody">
+        <ol class="guide-list">
+          <li><b>Pomodoro'yu başlat</b> — "Başlat" butonuna bas, geri sayım OLED'e yansır, başlama tonu çalar.</li>
+          <li><b>Hızlandır</b> — <code>×10 hız</code> kutusunu işaretle, 2.5 dakikada çalışma biter, MOLA tonu duyulur.</li>
+          <li><b>Telefonu kaldır</b> — "Telefon pad'de" kutusunun işaretini kaldır; alarm çalar, devrede kırmızı LED yanar, OLED uyarır. AI otomatik motive edici mesaj atar.</li>
+          <li><b>Ortamı değiştir</b> — Sıcaklık/nem slider'larını oynat, OLED "Ortam" ekranında ve devre üstünde BME280 değeri güncellenir.</li>
+          <li><b>Otomatik dalgalanma</b> — Kutuyu işaretle, sensör değerleri gerçekçi biçimde dalgalanır.</li>
+          <li><b>AI butonuna bas</b> — Kırmızı fiziksel butona veya devredeki U3'e tıkla (ya da <code>Space</code>), mikrofon dinlemeye geçer.</li>
+          <li><b>AI'a sor</b> — Text input'a yaz veya 🎤 ile konuş. NVIDIA Llama 3.3 70B cevap verir, TTS sesli okur, OLED AI ekranında gösterir.</li>
+          <li><b>OLED ekranlarını dolaş</b> — OLED panelindeki → butonu ile Pomodoro / Ortam / Telefon / AI ekranları arasında geç.</li>
+          <li><b>Devre kartını incele</b> — Kabloların üstüne gelince bus yanıp söner. Mouse wheel ile yakınlaştır, sürükleyerek gezin.</li>
+          <li><b>Seri monitörü oku</b> — Sayfanın altında tüm GPIO/I2C/I2S olayları zaman damgalı akar.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- OLED -->
+    <div class="panel oled-panel">
+      <div class="panel-header">
+        <span class="panel-title">OLED EKRAN <span class="sub">SSD1306 · 128×64</span></span>
+        <button class="btn-mini" id="oledNextBtn" title="Sonraki ekran">→</button>
+      </div>
+      <div class="oled-wrapper">
+        <canvas id="oledCanvas" width="384" height="192"></canvas>
+        <div class="oled-screens" id="oledScreens">
+          <span class="screen-dot active"></span>
+          <span class="screen-dot"></span>
+          <span class="screen-dot"></span>
+          <span class="screen-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pomodoro -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">POMODORO</span>
+        <span class="badge" id="pomoBadge">HAZIR</span>
+      </div>
+      <div class="pomo-body">
+        <div class="pomo-time" id="pomoTime">25:00</div>
+        <div class="pomo-cycle" id="pomoCycle">
+          <span class="cdot"></span><span class="cdot"></span>
+          <span class="cdot"></span><span class="cdot"></span>
+        </div>
+        <div class="pomo-buttons">
+          <button class="btn-primary" id="pomoStartBtn">Başlat</button>
+          <button class="btn-secondary" id="pomoResetBtn">Sıfırla</button>
+          <label class="speed-toggle">
+            <input type="checkbox" id="pomoSpeedBtn" />
+            <span>×10 hız (demo)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensörler -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">SENSÖR KONTROL</span>
+        <span class="sub">BME280 · HX711</span>
+      </div>
+      <div class="sensor-body">
+        <label class="slider-row">
+          <span>🌡️ Sıcaklık</span>
+          <input type="range" id="tempSlider" min="15" max="35" step="0.1" value="23.5" />
+          <output id="tempOut">23.5 °C</output>
+        </label>
+        <label class="slider-row">
+          <span>💧 Nem</span>
+          <input type="range" id="humSlider" min="20" max="80" step="1" value="55" />
+          <output id="humOut">55 %</output>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="driftToggle" />
+          <span>Otomatik dalgalanma</span>
+        </label>
+        <div class="phone-row">
+          <div class="phone-pad" id="phonePad">
+            <div class="pad-surface">
+              <div class="phone-icon" id="phoneIcon">📱</div>
+            </div>
+            <span class="pad-label">Load Cell Pad</span>
+          </div>
+          <div class="phone-info">
+            <label class="checkbox-row big">
+              <input type="checkbox" id="phoneToggle" checked />
+              <span>Telefon pad'de</span>
+            </label>
+            <div class="hx711-readout">
+              HX711: <span id="hx711Val">180 g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Asistan -->
+    <div class="panel ai-panel">
+      <div class="panel-header">
+        <span class="panel-title">STUDY BUDDY AI</span>
+        <span class="sub" id="aiStatus">Hazır · Butona bas veya "hey buddy" de</span>
+      </div>
+      <div class="physical-btn-row">
+        <button class="physical-btn" id="physicalBtn" title="Fiziksel buton — cihazdaki kırmızı AI butonunu simüle eder">
+          <span class="pbtn-cap"></span>
+          <span class="pbtn-label">AI BUTONU</span>
+        </button>
+        <div class="pbtn-info">
+          <div class="pbtn-gpio">GPIO · D6 · U3</div>
+          <div class="pbtn-hint">Basınca mikrofon dinlemeye başlar</div>
+        </div>
+      </div>
+      <div class="ai-chat" id="aiChat">
+        <div class="ai-msg ai-msg-bot">
+          Merhaba! Ben Study Buddy. Odaklanmanda, mola düzeninde veya çalışma tekniklerinde yardımcı olabilirim. Sor bana. 📚
+        </div>
+      </div>
+      <div class="ai-input-row">
+        <button class="btn-mic" id="micBtn" title="Mikrofon ile sor">🎤</button>
+        <input type="text" id="aiInput" placeholder="Asistan'a yaz... (örn. odaklanamıyorum, ne yapayım?)" />
+        <button class="btn-primary" id="aiSendBtn">Gönder</button>
+      </div>
+      <div class="ai-hints">
+        <button class="chip" data-hint="Odaklanamıyorum, ne yapmalıyım?">Odaklanamıyorum</button>
+        <button class="chip" data-hint="5 dakikalık mola için öneri verir misin?">Mola önerisi</button>
+        <button class="chip" data-hint="Pomodoro tekniği nedir kısaca anlat?">Pomodoro nedir?</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Seri Monitör -->
+<section class="serial-monitor" id="serialMonitor">
+  <div class="serial-header">
+    <span class="panel-title">SERİ MONİTÖR <span class="sub">115200 baud · /dev/cu.usbmodem</span></span>
+    <div class="serial-actions">
+      <button class="btn-mini" id="serialClearBtn">Temizle</button>
+      <button class="btn-mini" id="serialToggleBtn">Gizle</button>
+    </div>
+  </div>
+  <div class="serial-body" id="serialBody">
+    <div class="serial-line sys">[boot] Study Buddy v1.0 başlatılıyor...</div>
+    <div class="serial-line sys">[boot] XIAO ESP32-S3 · Dual-core LX7 @ 240 MHz</div>
+    <div class="serial-line sys">[boot] 8 MB PSRAM + 8 MB Flash</div>
+  </div>
+</section>
+
+<!-- API Key Modal -->
+<div class="modal-backdrop" id="apiModal" hidden>
+  <div class="modal">
+    <h2>🔑 NVIDIA API Anahtarı</h2>
+    <p>AI asistanının gerçek cevaplar verebilmesi için NVIDIA NIM API anahtarını gir. Ücretsiz kredi ile kullanılabilir. Anahtar sadece tarayıcıda (localStorage) saklanır, sunucuya gönderilmez.</p>
+    <input type="password" id="apiKeyInput" placeholder="nvapi-..." />
+    <div class="modal-hint">
+      Key almak için: <code>https://build.nvidia.com</code> → herhangi bir model → "Get API Key"
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" id="apiKeyCancel">İptal</button>
+      <button class="btn-primary" id="apiKeySave">Kaydet</button>
+      <button class="btn-danger" id="apiKeyClear">Sil</button>
+    </div>
+    <div class="modal-status" id="apiKeyStatus"></div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
